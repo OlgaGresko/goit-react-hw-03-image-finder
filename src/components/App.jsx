@@ -47,9 +47,7 @@ export default class App extends Component {
       if (filter && filter !== prevFilter) {
         const pictures = await fetchGallery(filter, page);
         if (pictures.length === 0) {
-          Notify.failure('Sorry, no images for your request :(', {
-            position: 'center-top',
-          });
+          Notify.failure('Sorry, no images for your request :(');
         }
         this.setState(prevState => ({
           pictures: [...prevState.pictures, ...pictures],
@@ -57,9 +55,7 @@ export default class App extends Component {
         }));
       }
       if (filter === '') {
-        Notify.failure('Please type something!', {
-          position: 'center-top',
-        });
+        Notify.failure('Please type something!');
       }
     } catch (error) {
       this.setState({ isError: true, error });
@@ -113,6 +109,7 @@ export default class App extends Component {
         style={{
           height: '100vh',
           display: 'grid',
+          alignContent: 'start',
           gridTemplateColumns: '1fr',
           gridGap: 16,
           paddingBottom: 24,
