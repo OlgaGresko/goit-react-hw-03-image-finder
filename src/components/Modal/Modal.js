@@ -7,13 +7,17 @@ const modalRoot = document.querySelector('#modal-root');
 export default class Modal extends Component {
   state = {
     pictureLink: null,
+    pictureAlt: '',
   };
 
   componentDidMount() {
     const { pictures, id } = this.props;
     const foundPicture = pictures.find(picture => picture.id === id);
     if (foundPicture) {
-      this.setState({ pictureLink: foundPicture.largeImageURL });
+      this.setState({ 
+        pictureLink: foundPicture.largeImageURL,
+        pictureAlt: foundPicture.tags,
+       });
     }
 
     window.addEventListener('keydown', this.handleKeyDown);
@@ -45,7 +49,7 @@ export default class Modal extends Component {
       >
         <div id="modal" className={css.modal}>
           {this.state.pictureLink && (
-            <img src={this.state.pictureLink} alt="Large picture" />
+            <img src={this.state.pictureLink} alt={this.state.pictureAlt} />
           )}
         </div>
       </div>,
