@@ -22,36 +22,19 @@ export default class App extends Component {
   };
 
   async componentDidUpdate(_, prevState) {
-    if (prevState.filter !== this.state.filter) {
+    if (
+      prevState.filter !== this.state.filter ||
+      prevState.page !== this.state.page
+    ) {
       try {
         const response = await fetchGallery(this.state.filter, this.state.page);
         if (response.length === 0) {
           Notify.failure('Sorry, no images for your request :(');
         }
-        this.setState({
-          pictures: response,
-          isLoading: false,
-        });
-      } catch (error) {
-        this.setState({
-          isError: error.message,
-        });
-      } finally {
-        this.setState({
-          isLoading: false,
-        });
-      }
-    }
-    if (
-      prevState.filter === this.state.filter &&
-      prevState.page !== this.state.page
-    ) {
-      try {
-        const response = await fetchGallery(this.state.filter, this.state.page);
-        this.setState({
+        this.setState(prevState => ({
           pictures: [...prevState.pictures, ...response],
           isLoading: false,
-        });
+        }));
       } catch (error) {
         this.setState({
           isError: error.message,
@@ -74,12 +57,14 @@ export default class App extends Component {
       this.setState({ isLoading: false });
       return;
     }
-    this.setState({
-      isLoading: true,
-      pictures: [],
-      filter: inputValue,
-      page: 1,
-    });
+    if (inputValue !== this.state.filter) {
+      this.setState({
+        isLoading: true,
+        pictures: [],
+        filter: inputValue,
+        page: 1,
+      });
+    }
   };
 
   addMorePages = async () => {
