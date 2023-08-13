@@ -14,7 +14,6 @@ export default class App extends Component {
     isLoading: false,
     isError: false,
     filter: '',
-    prevFilter: '',
     error: null,
     pictures: [],
     page: 1,
@@ -22,63 +21,69 @@ export default class App extends Component {
     showModal: false,
   };
 
-  async componentDidUpdate(prevProps, prevState) {
+  async componentDidUpdate(_, prevState) {
     if (prevState.filter !== this.state.filter) {
-      this.setState({
-        pictures: [],
-        page: 1,
-      });
+      try {
+        const response = await fetchGallery(this.state.filter, this.state.page);
+        if (response.length === 0) {
+          Notify.failure('Sorry, no images for your request :(');
+        }
+        this.setState({
+          pictures: response,
+          isLoading: false,
+        });
+      } catch (error) {
+        this.setState({
+          isError: error.message,
+        });
+      } finally {
+        this.setState({
+          isLoading: false,
+        });
+      }
+    }
+    if (
+      prevState.filter === this.state.filter &&
+      prevState.page !== this.state.page
+    ) {
+      try {
+        const response = await fetchGallery(this.state.filter, this.state.page);
+        this.setState({
+          pictures: [...prevState.pictures, ...response],
+          isLoading: false,
+        });
+      } catch (error) {
+        this.setState({
+          isError: error.message,
+        });
+      } finally {
+        this.setState({
+          isLoading: false,
+        });
+      }
     }
   }
 
-  fetchData = async e => {
+  handleSubmit = async e => {
     if (e) {
       e.preventDefault();
     }
-    const { filter, page, prevFilter } = this.state;
-    this.setState({ isLoading: true });
-
-    try {
-      if (filter && filter === prevFilter) {
-        this.setState(prevState => ({
-          pictures: [...prevState.pictures],
-        }));
-      }
-      if (filter && filter !== prevFilter) {
-        const pictures = await fetchGallery(filter, page);
-        if (pictures.length === 0) {
-          Notify.failure('Sorry, no images for your request :(');
-        }
-        this.setState(prevState => ({
-          pictures: [...prevState.pictures, ...pictures],
-          prevFilter: filter,
-        }));
-      }
-      if (filter === '') {
-        Notify.failure('Please type something!');
-      }
-    } catch (error) {
-      this.setState({ isError: true, error });
-    } finally {
+    const inputValue = e.currentTarget.elements.query.value;
+    if (inputValue === '') {
+      Notify.failure('Please type something!');
       this.setState({ isLoading: false });
+      return;
     }
+    this.setState({
+      isLoading: true,
+      pictures: [],
+      filter: inputValue,
+      page: 1,
+    });
   };
 
   addMorePages = async () => {
-    const { filter, page } = this.state;
-
     this.setState(prevState => ({ page: prevState.page + 1, isLoading: true }));
-    try {
-      const pictures = await fetchGallery(filter, page + 1);
-      this.setState(prevState => ({
-        pictures: [...prevState.pictures, ...pictures],
-        // page: prevState.page + 1
-      }));
-    } catch (error) {
-      this.setState({ isError: true, error });
-    } finally {
-      this.setState({ isLoading: false });
-    }
   };
 
   toggleModal = id => {
@@ -117,8 +122,8 @@ export default class App extends Component {
           color: '#010101',
         }}
       >
-        <Searchbar onChange={this.onChangeInput} onSubmit={this.fetchData} />
-        
+        <Searchbar onSubmit={this.handleSubmit} />
+
         <ImageGallery
           pictures={this.state.pictures}
           toggleModal={this.toggleModal}
