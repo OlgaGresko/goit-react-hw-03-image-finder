@@ -14,7 +14,6 @@ export default class App extends Component {
     isLoading: false,
     isError: false,
     filter: '',
-    error: null,
     pictures: [],
     page: 1,
     pictureId: null,
@@ -83,12 +82,6 @@ export default class App extends Component {
     } else {
       document.body.classList.remove('no-scroll');
     }
-  };
-
-  onChangeInput = e => {
-    this.setState({
-      filter: e.target.value.toLowerCase().trim(),
-    });
   };
 
   render() {
